@@ -1,20 +1,22 @@
 <template>
-  <div class="form-container">
+  <div class="content-wrapper">
     <h1>编辑文章</h1>
-    <form @submit.prevent="updatePost" v-if="post">
-      <div class="form-group">
-        <label for="title">标题</label>
-        <input type="text" id="title" v-model="post.title" required>
-      </div>
-      <div class="form-group">
-        <label for="content">内容</label>
-        <textarea id="content" v-model="post.content" required rows="15"></textarea>
-      </div>
-      <div class="controls">
-        <button type="submit" class="button-primary">保存更改</button>
-        <router-link :to="{ name: 'post', params: { id: post.id } }" class="button-secondary">取消</router-link>
-      </div>
-    </form>
+    <div class="card">
+      <form @submit.prevent="updatePost" v-if="post">
+        <div class="form-group">
+          <label for="title">标题</label>
+          <input type="text" id="title" v-model="post.title" required>
+        </div>
+        <div class="form-group">
+          <label for="content">内容</label>
+          <textarea id="content" v-model="post.content" required rows="12"></textarea>
+        </div>
+        <div class="controls">
+          <button type="submit" class="button-primary">保存更改</button>
+          <router-link :to="{ name: 'post', params: { id: post.id } }" class="button-secondary">取消</router-link>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -22,6 +24,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
+import '../assets/content.css' // Import shared styles
 
 interface Post {
   id: number
@@ -60,10 +63,6 @@ onMounted(fetchPost)
 </script>
 
 <style scoped>
-.form-container h1 {
-  margin-bottom: 1.5rem;
-}
-
 .form-group {
   margin-bottom: 1.5rem;
 }
@@ -72,43 +71,31 @@ onMounted(fetchPost)
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  font-size: 1.1rem;
 }
 
 .form-group input,
 .form-group textarea {
   width: 100%;
-  padding: 0.8rem 1rem;
-  border: 1px solid #ccc;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 1rem;
-  box-sizing: border-box; /* Important for width */
-  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+  box-sizing: border-box;
 }
 
 .controls {
   margin-top: 2rem;
   display: flex;
+  justify-content: flex-end;
   gap: 1rem;
-  align-items: center;
 }
 
 .button-primary, .button-secondary {
-  padding: 0.8rem 2rem;
-  border: none;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid transparent;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 1.1rem;
   text-decoration: none;
-  text-align: center;
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 }
 
 .button-primary {
@@ -116,18 +103,8 @@ onMounted(fetchPost)
   color: white;
 }
 
-.button-primary:hover {
-  background-color: var(--primary-hover-color);
-}
-
 .button-secondary {
-  background-color: transparent;
-  color: var(--text-color);
-  border: 1px solid #ccc;
-}
-
-.button-secondary:hover {
-  background-color: #f8f9fa;
-  border-color: #bbb;
+  background-color: #e5e7eb;
+  color: var(--text-dark);
 }
 </style>

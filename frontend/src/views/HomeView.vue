@@ -1,11 +1,24 @@
 <template>
-  <div class="home">
-    <ul class="post-list">
-      <li v-for="post in posts" :key="post.id">
-        <router-link :to="{ name: 'post', params: { id: post.id } }">{{ post.title }}</router-link>
-        <button @click="deletePost(post.id)" class="delete-button">删除</button>
-      </li>
-    </ul>
+  <div class="home-page">
+    <section class="hero-section">
+      <div class="hero-content">
+        <h1>欢迎来到我的数字花园</h1>
+        <p>在这里，思绪生根发芽，观点碰撞成长。</p>
+      </div>
+    </section>
+
+    <section class="posts-section">
+      <div class="posts-container">
+        <h2>最新文章</h2>
+        <div class="post-list">
+          <div class="post-card" v-for="post in posts" :key="post.id">
+            <h3>{{ post.title }}</h3>
+            <p class="post-excerpt">{{ truncate(post.content, 100) }}</p>
+            <router-link :to="{ name: 'post', params: { id: post.id } }" class="read-more">阅读全文 &rarr;</router-link>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -30,67 +43,95 @@ const fetchPosts = async () => {
   }
 }
 
-const deletePost = async (id: number) => {
-  if (confirm('确定要删除这篇文章吗？')) {
-    try {
-      await axios.delete(`http://127.0.0.1:3000/posts/${id}`)
-      await fetchPosts()
-    } catch (error) {
-      console.error(`删除文章 (id: ${id}) 失败:`, error)
-    }
+const truncate = (text: string, length: number) => {
+  if (text.length <= length) {
+    return text
   }
+  return text.substring(0, length) + '...'
 }
 
 onMounted(fetchPosts)
 </script>
 
 <style scoped>
-.post-list {
-  list-style: none;
-  padding: 0;
-}
-
-.post-list li {
+.hero-section {
+  height: 100vh;
+  background-image: url('/hero-background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed; /* This creates the parallax effect */
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  padding: 1rem 1.5rem;
-  border-radius: 6px;
-  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  margin-bottom: 1rem;
-  border: 1px solid #eee;
+  text-align: center;
+  color: white;
 }
 
-.post-list li:hover {
-  background-color: #fcfcfc;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+.hero-content {
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 2rem 3rem;
+  border-radius: 8px;
+  backdrop-filter: blur(5px);
 }
 
-.post-list li a {
-  font-size: 1.3rem;
+.hero-content h1 {
+  font-size: 3.5rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.hero-content p {
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.posts-section {
+  background-color: #ffffff;
+  padding: 4rem 2rem;
+}
+
+.posts-container {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.posts-container h2 {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 3rem;
+  color: var(--text-dark);
+}
+
+.post-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.post-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.post-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.post-card h3 {
+  font-size: 1.5rem;
+  margin: 0 0 1rem 0;
+}
+
+.post-excerpt {
+  color: #4b5563;
+  margin-bottom: 1.5rem;
+}
+
+.read-more {
   color: var(--primary-color);
   text-decoration: none;
-  font-weight: 500;
-}
-
-.post-list li a:hover {
-  text-decoration: underline;
-}
-
-.delete-button {
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  opacity: 0.8;
-  transition: opacity 0.2s ease-in-out, background-color 0.2s ease-in-out;
-}
-
-.delete-button:hover {
-  opacity: 1;
-  background-color: #c82333;
+  font-weight: 600;
 }
 </style>

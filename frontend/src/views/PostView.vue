@@ -1,10 +1,12 @@
 <template>
-  <div class="post-view" v-if="post">
-    <h1>{{ post.title }}</h1>
-    <p class="post-content">{{ post.content }}</p>
-    <div class="controls">
-      <router-link :to="{ name: 'edit', params: { id: post.id } }" class="button edit-button">编辑</router-link>
-      <button @click="deletePost" class="button delete-button">删除</button>
+  <div class="content-wrapper">
+    <div class="card">
+      <h1>{{ post?.title }}</h1>
+      <p class="post-content">{{ post?.content }}</p>
+      <div class="controls">
+        <router-link :to="{ name: 'edit', params: { id: post.id } }" class="button-edit">编辑</router-link>
+        <button @click="deletePost" class="button-delete">删除</button>
+      </div>
     </div>
   </div>
 </template>
@@ -13,6 +15,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
+import '../assets/content.css' // Import shared styles
 
 interface Post {
   id: number
@@ -39,7 +42,7 @@ const deletePost = async () => {
   if (confirm('确定要删除这篇文章吗？')) {
     try {
       await axios.delete(`http://127.0.0.1:3000/posts/${post.value.id}`)
-      router.push('/') // Redirect to home page after deletion
+      router.push('/')
     } catch (error) {
       console.error(`删除文章 (id: ${post.value.id}) 失败:`, error)
     }
@@ -50,57 +53,40 @@ onMounted(fetchPost)
 </script>
 
 <style scoped>
-.post-view h1 {
-  font-size: 2.5rem;
-  margin-bottom: 1.5rem;
-}
-
 .post-content {
   font-family: var(--font-serif);
-  white-space: pre-wrap; /* Preserve whitespace and newlines */
-  font-size: 1.2rem;
-  line-height: 1.8;
-  color: #444;
+  white-space: pre-wrap;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #374151;
 }
 
 .controls {
   margin-top: 3rem;
   display: flex;
   gap: 1rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #e5e7eb;
   padding-top: 2rem;
 }
 
-.button {
-  display: inline-block;
-  padding: 0.7rem 1.5rem;
-  border: none;
-  border-radius: 5px;
+.button-edit, .button-delete {
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 0.9rem;
   text-decoration: none;
-  color: white;
   cursor: pointer;
-  font-size: 1rem;
-  text-align: center;
-  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+  transition: all 0.2s ease-in-out;
 }
 
-.button:hover {
-  transform: translateY(-2px);
-}
-
-.edit-button {
+.button-edit {
   background-color: var(--primary-color);
+  color: white;
 }
 
-.edit-button:hover {
-  background-color: var(--primary-hover-color);
-}
-
-.delete-button {
-  background-color: #dc3545;
-}
-
-.delete-button:hover {
-  background-color: #c82333;
+.button-delete {
+  background-color: transparent;
+  color: #ef4444;
+  border-color: #fca5a5;
 }
 </style>
