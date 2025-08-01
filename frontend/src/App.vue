@@ -2,10 +2,10 @@
   <div id="app-container">
     <header :class="{ 'scrolled': isScrolled }">
       <div class="header-content">
-        <h1 class="blog-title">我的博客</h1>
+        <h1 class="blog-title">随心记</h1>
         <nav>
           <RouterLink to="/">主页</RouterLink>
-          <RouterLink to="/create">创建新文章</RouterLink>
+          <RouterLink to="/create">写点什么</RouterLink>
         </nav>
       </div>
     </header>
@@ -14,7 +14,7 @@
     <RouterView />
 
     <footer class="app-footer">
-      <p>&copy; 2025 我的博客. All Rights Reserved.</p>
+      <p>&copy; 2025 随心记. All Rights Reserved.</p>
     </footer>
   </div>
 </template>

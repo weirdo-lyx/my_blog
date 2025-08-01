@@ -2,14 +2,14 @@
   <div class="home-page">
     <section class="hero-section">
       <div class="hero-content">
-        <h1>欢迎来到我的数字花园</h1>
-        <p>在这里，思绪生根发芽，观点碰撞成长。</p>
+        <h1>欢迎来到我的随心记</h1>
+        <p>在这里，记录点滴，分享心情。</p>
       </div>
     </section>
 
     <section class="posts-section">
       <div class="posts-container">
-        <h2>最新文章</h2>
+        <h2>最近的随笔</h2>
         <div class="post-list">
           <div class="post-card" v-for="post in posts" :key="post.id">
             <h3>{{ post.title }}</h3>
