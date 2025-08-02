@@ -30,9 +30,9 @@ services:
         value: info
 
   # Vue.js Frontend
-  - type: static_site
+  - type: web
     name: blog-frontend
-    env: static
+    runtime: static
     repo: https://github.com/weirdo-lyx/my_blog.git
     buildCommand: |
       cd frontend
