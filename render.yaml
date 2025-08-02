@@ -32,10 +32,7 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: blog-backend
-          property: url
+        value: $RENDER_EXTERNAL_URL
 
 databases:
   - name: blog-db
