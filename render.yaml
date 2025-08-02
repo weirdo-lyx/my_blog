@@ -36,4 +36,4 @@ services:
 
 databases:
   - name: blog-db
-    plan: free
+    plan: starter
