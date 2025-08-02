@@ -30,7 +30,7 @@ services:
         value: info
 
   # Vue.js Frontend
-  - type: static
+  - type: static_site
     name: blog-frontend
     env: static
     repo: https://github.com/weirdo-lyx/my_blog.git
