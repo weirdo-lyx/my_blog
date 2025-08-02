@@ -1,23 +1,45 @@
 <template>
   <div class="post-view-container">
-    <div v-if="post" class="post-content-card">
-      <div class="post-header">
-        <h1 class="post-title">{{ post?.title }}</h1>
-      </div>
+    <el-card v-if="post" class="post-content-card" shadow="hover">
+      <template #header>
+        <div class="post-header">
+          <h1 class="post-title">{{ post?.title }}</h1>
+        </div>
+      </template>
+      
       <div class="post-body">
         <p class="post-content">{{ post?.content }}</p>
       </div>
-      <div class="post-controls">
-        <router-link :to="{ name: 'edit', params: { id: post.id } }" class="button-edit">编辑</router-link>
-        <button @click="deletePost" class="button-delete">删除</button>
-      </div>
-    </div>
+      
+      <template #footer>
+        <div class="post-controls">
+          <el-button 
+            type="primary" 
+            size="large"
+            @click="editPost"
+            :icon="Edit"
+          >
+            编辑
+          </el-button>
+          <el-button 
+            type="danger" 
+            size="large"
+            @click="deletePost"
+            :icon="Delete"
+          >
+            删除
+          </el-button>
+        </div>
+      </template>
+    </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Edit, Delete } from '@element-plus/icons-vue'
 import axios from 'axios'
 
 interface Post {
@@ -33,20 +55,37 @@ const router = useRouter()
 const fetchPost = async () => {
   const postId = route.params.id
   try {
-    const response = await axios.get(`http://127.0.0.1:3000/posts/${postId}`)
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/posts/${postId}`)
     post.value = response.data
   } catch (error) {
     console.error(`获取文章 (id: ${postId}) 失败:`, error)
+    ElMessage.error('获取文章失败')
   }
 }
 
+const editPost = () => {
+  router.push({ name: 'edit', params: { id: post.value?.id } })
+}
+
 const deletePost = async () => {
-  if (confirm('确定要删除这篇随笔吗？')) {
-    try {
-      await axios.delete(`http://127.0.0.1:3000/posts/${post.value.id}`)
-      router.push('/')
-    } catch (error) {
-      console.error(`删除随笔 (id: ${post.value.id}) 失败:`, error)
+  try {
+    await ElMessageBox.confirm(
+      '确定要删除这篇随笔吗？此操作不可恢复。',
+      '确认删除',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    )
+    
+    await axios.delete(`${import.meta.env.VITE_API_URL}/posts/${post.value?.id}`)
+    ElMessage.success('删除成功')
+    router.push('/')
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error(`删除随笔 (id: ${post.value?.id}) 失败:`, error)
+      ElMessage.error('删除失败')
     }
   }
 }
@@ -68,21 +107,31 @@ onMounted(fetchPost)
 }
 
 .post-content-card {
-  background-color: rgba(255, 255, 255, 0.95);
-  border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(20px);
   max-width: 1000px;
   width: 100%;
   margin: 0 auto;
+  border-radius: 16px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.post-content-card :deep(.el-card__header) {
+  background: #87ceeb;
+  border-bottom: none;
+  padding: 2rem 3rem;
+}
+
+.post-content-card :deep(.el-card__body) {
+  padding: 0;
+}
+
+.post-content-card :deep(.el-card__footer) {
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  padding: 2rem 3rem;
 }
 
 .post-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 3rem 4rem 2rem;
-  color: white;
+  text-align: center;
 }
 
 .post-title {
@@ -90,6 +139,7 @@ onMounted(fetchPost)
   font-weight: 700;
   margin: 0;
   line-height: 1.2;
+  color: white;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -110,49 +160,9 @@ onMounted(fetchPost)
 }
 
 .post-controls {
-  background-color: #f8fafc;
-  padding: 2rem 4rem;
   display: flex;
   gap: 1rem;
-  border-top: 1px solid #e2e8f0;
-  justify-content: flex-end;
-}
-
-.button-edit, .button-delete {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
-  min-width: 100px;
-}
-
-.button-edit {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.button-edit:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-}
-
-.button-delete {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
-}
-
-.button-delete:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(240, 147, 251, 0.6);
 }
 
 /* 响应式设计 */
@@ -165,8 +175,8 @@ onMounted(fetchPost)
     max-width: 100%;
   }
   
-  .post-header {
-    padding: 2rem 2rem 1.5rem;
+  .post-content-card :deep(.el-card__header) {
+    padding: 1.5rem 2rem;
   }
   
   .post-title {
@@ -183,19 +193,18 @@ onMounted(fetchPost)
     line-height: 1.7;
   }
   
-  .post-controls {
+  .post-content-card :deep(.el-card__footer) {
     padding: 1.5rem 2rem;
-    flex-direction: column;
   }
   
-  .button-edit, .button-delete {
-    width: 100%;
+  .post-controls {
+    flex-direction: column;
   }
 }
 
 @media (max-width: 480px) {
-  .post-header {
-    padding: 1.5rem 1.5rem 1rem;
+  .post-content-card :deep(.el-card__header) {
+    padding: 1rem 1.5rem;
   }
   
   .post-title {
@@ -208,6 +217,10 @@ onMounted(fetchPost)
   
   .post-content {
     font-size: 1rem;
+  }
+  
+  .post-content-card :deep(.el-card__footer) {
+    padding: 1rem 1.5rem;
   }
 }
 </style>

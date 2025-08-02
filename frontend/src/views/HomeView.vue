@@ -36,7 +36,7 @@ const posts = ref<Post[]>([])
 
 const fetchPosts = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:3000/posts')
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/posts`)
     posts.value = response.data
   } catch (error) {
     console.error('获取文章列表失败:', error)

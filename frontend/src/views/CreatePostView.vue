@@ -1,47 +1,110 @@
 <template>
   <div class="create-post-container">
-    <div class="create-post-card">
-      <div class="create-post-header">
-        <h1>写点随笔</h1>
-        <p>记录你的想法和感受</p>
-      </div>
+    <el-card class="create-post-card" shadow="hover">
+      <template #header>
+        <div class="create-post-header">
+          <h1>写点随笔</h1>
+          <p>记录你的想法和感受</p>
+        </div>
+      </template>
+      
       <div class="create-post-body">
-        <form @submit.prevent="createPost">
-          <div class="form-group">
-            <label for="title">标题</label>
-            <input type="text" id="title" v-model="title" required placeholder="给你的随笔起个标题...">
-          </div>
-          <div class="form-group">
-            <label for="content">内容</label>
-            <textarea id="content" v-model="content" required rows="16" placeholder="在这里写下你的想法..."></textarea>
-          </div>
-          <div class="form-controls">
-            <button type="submit" class="button-publish">发布随笔</button>
-          </div>
-        </form>
+        <el-form 
+          ref="formRef" 
+          :model="form" 
+          :rules="rules" 
+          label-width="80px"
+          @submit.prevent="createPost"
+        >
+          <el-form-item label="标题" prop="title">
+            <el-input 
+              v-model="form.title" 
+              placeholder="给你的随笔起个标题..."
+              size="large"
+              clearable
+            />
+          </el-form-item>
+          
+          <el-form-item label="内容" prop="content">
+            <el-input 
+              v-model="form.content" 
+              type="textarea" 
+              :rows="16"
+              placeholder="在这里写下你的想法..."
+              size="large"
+              resize="vertical"
+            />
+          </el-form-item>
+          
+          <el-form-item>
+            <el-button 
+              type="primary" 
+              size="large"
+              @click="createPost"
+              :loading="loading"
+              :icon="DocumentAdd"
+            >
+              发布随笔
+            </el-button>
+          </el-form-item>
+        </el-form>
       </div>
-    </div>
+    </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+
+onMounted(() => {
+  console.log('Vite Env Variables:', import.meta.env);
+});
 import { useRouter } from 'vue-router'
+import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
+import { DocumentAdd } from '@element-plus/icons-vue'
 import axios from 'axios'
 
-const title = ref('')
-const content = ref('')
 const router = useRouter()
+const formRef = ref<FormInstance>()
+const loading = ref(false)
+
+const form = reactive({
+  title: '',
+  content: ''
+})
+
+const rules: FormRules = {
+  title: [
+    { required: true, message: '请输入标题', trigger: 'blur' },
+    { min: 1, max: 100, message: '标题长度在 1 到 100 个字符', trigger: 'blur' }
+  ],
+  content: [
+    { required: true, message: '请输入内容', trigger: 'blur' },
+    { min: 1, max: 10000, message: '内容长度在 1 到 10000 个字符', trigger: 'blur' }
+  ]
+}
 
 const createPost = async () => {
+  if (!formRef.value) return
+  
   try {
-    await axios.post('http://127.0.0.1:3000/posts', {
-      title: title.value,
-      content: content.value
+    await formRef.value.validate()
+    loading.value = true
+    
+    await axios.post(`${import.meta.env.VITE_API_URL}/posts`, {
+      title: form.title,
+      content: form.content
     })
+    
+    ElMessage.success('发布成功')
     router.push('/')
   } catch (error) {
-    console.error('创建文章失败:', error)
+    if (error !== false) {
+      console.error('创建文章失败:', error)
+      ElMessage.error('发布失败，请重试')
+    }
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -60,22 +123,26 @@ const createPost = async () => {
 }
 
 .create-post-card {
-  background-color: rgba(255, 255, 255, 0.95);
-  border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(20px);
   max-width: 900px;
   width: 100%;
   margin: 0 auto;
+  border-radius: 16px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.create-post-card :deep(.el-card__header) {
+  background: #87ceeb;
+  border-bottom: none;
+  padding: 2rem 3rem;
+}
+
+.create-post-card :deep(.el-card__body) {
+  padding: 0;
 }
 
 .create-post-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 3rem 4rem 2rem;
-  color: white;
   text-align: center;
+  color: white;
 }
 
 .create-post-header h1 {
@@ -95,72 +162,38 @@ const createPost = async () => {
   padding: 3rem 4rem;
 }
 
-.form-group {
-  margin-bottom: 2rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.75rem;
+.create-post-body :deep(.el-form-item__label) {
   font-weight: 600;
   color: #2d3748;
   font-size: 1.1rem;
 }
 
-.form-group input,
-.form-group textarea {
-  width: 100%;
-  padding: 1rem 1.25rem;
-  border: 2px solid #e2e8f0;
+.create-post-body :deep(.el-input__wrapper) {
   border-radius: 12px;
-  font-size: 1rem;
-  box-sizing: border-box;
-  transition: all 0.3s ease;
-  background-color: #f8fafc;
+  box-shadow: 0 0 0 1px #e2e8f0;
+}
+
+.create-post-body :deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px #667eea;
+}
+
+.create-post-body :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px #667eea;
+}
+
+.create-post-body :deep(.el-textarea__inner) {
   font-family: 'Georgia', 'Times New Roman', serif;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: #667eea;
-  background-color: white;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.form-group textarea {
-  resize: vertical;
-  min-height: 300px;
   line-height: 1.6;
-}
-
-.form-controls {
-  margin-top: 3rem;
-  display: flex;
-  justify-content: center;
-}
-
-.button-publish {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 1rem 2.5rem;
-  border: none;
   border-radius: 12px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  min-width: 150px;
+  box-shadow: 0 0 0 1px #e2e8f0;
 }
 
-.button-publish:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+.create-post-body :deep(.el-textarea__inner:hover) {
+  box-shadow: 0 0 0 1px #667eea;
 }
 
-.button-publish:active {
-  transform: translateY(0);
+.create-post-body :deep(.el-textarea__inner:focus) {
+  box-shadow: 0 0 0 1px #667eea;
 }
 
 /* 响应式设计 */
@@ -173,7 +206,7 @@ const createPost = async () => {
     max-width: 100%;
   }
   
-  .create-post-header {
+  .create-post-card :deep(.el-card__header) {
     padding: 2rem 2rem 1.5rem;
   }
   
@@ -184,20 +217,10 @@ const createPost = async () => {
   .create-post-body {
     padding: 2rem;
   }
-  
-  .form-group input,
-  .form-group textarea {
-    padding: 0.875rem 1rem;
-  }
-  
-  .button-publish {
-    width: 100%;
-    padding: 1rem 2rem;
-  }
 }
 
 @media (max-width: 480px) {
-  .create-post-header {
+  .create-post-card :deep(.el-card__header) {
     padding: 1.5rem 1.5rem 1rem;
   }
   

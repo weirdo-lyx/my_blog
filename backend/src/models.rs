@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 /// Represents a blog post in the database.
 #[derive(Serialize, Deserialize, Clone, Debug, sqlx::FromRow)]
 pub struct Post {
-    pub id: i64,
+    pub id: i32,
     pub title: String,
     pub content: String,
 }

@@ -1,0 +1,52 @@
+# docker-compose.yml
+
+services:
+  # PostgreSQL Database Service
+  db:
+    image: postgres:15-alpine
+    container_name: blog-postgres-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: blog
+    ports:
+      - "5433:5432" # Expose PostgreSQL port to the host machine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d blog"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend Service (Rust/Axum)
+  backend:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    container_name: blog-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgres://user:password@db:5432/blog
+      - PORT=10000
+      - RUST_LOG=info
+    ports:
+      - "10000:10000" # Expose the backend port to the host machine
+
+  # Frontend Service (Vue.js/Nginx)
+  frontend:
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:10000
+    container_name: blog-frontend
+    ports:
+      - "8080:80" # Expose Nginx port to the host machine
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

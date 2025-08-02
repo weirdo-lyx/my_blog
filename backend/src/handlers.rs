@@ -4,11 +4,11 @@ use axum::{
     response::Json,
 };
 use crate::models::{CreatePost, Post};
-use sqlx::SqlitePool;
+use sqlx::PgPool;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub pool: SqlitePool,
+    pub pool: PgPool,
 }
 
 
@@ -26,28 +26,21 @@ pub async fn create_post(
     State(state): State<AppState>,
     Json(input): Json<CreatePost>,
 ) -> Result<(StatusCode, Json<Post>), StatusCode> {
-    let result = sqlx::query("INSERT INTO posts (title, content) VALUES (?, ?)")
+    let post = sqlx::query_as::<_, Post>("INSERT INTO posts (title, content) VALUES ($1, $2) RETURNING id, title, content")
         .bind(&input.title)
         .bind(&input.content)
-        .execute(&state.pool)
+        .fetch_one(&state.pool)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    let id = result.last_insert_rowid();
-    let post = Post {
-        id,
-        title: input.title,
-        content: input.content,
-    };
 
     Ok((StatusCode::CREATED, Json(post)))
 }
 
 pub async fn get_post(
     State(state): State<AppState>,
-    Path(id): Path<i64>,
+    Path(id): Path<i32>,
 ) -> Result<Json<Post>, StatusCode> {
-    sqlx::query_as::<_, Post>("SELECT id, title, content FROM posts WHERE id = ?")
+    sqlx::query_as::<_, Post>("SELECT id, title, content FROM posts WHERE id = $1")
         .bind(id)
         .fetch_one(&state.pool)
         .await
@@ -60,10 +53,10 @@ pub async fn get_post(
 
 pub async fn update_post(
     State(state): State<AppState>,
-    Path(id): Path<i64>,
+    Path(id): Path<i32>,
     Json(input): Json<CreatePost>,
 ) -> Result<StatusCode, StatusCode> {
-    let result = sqlx::query("UPDATE posts SET title = ?, content = ? WHERE id = ?")
+    let result = sqlx::query("UPDATE posts SET title = $1, content = $2 WHERE id = $3")
         .bind(&input.title)
         .bind(&input.content)
         .bind(id)
@@ -78,8 +71,8 @@ pub async fn update_post(
     }
 }
 
-pub async fn delete_post(State(state): State<AppState>, Path(id): Path<i64>) -> Result<StatusCode, StatusCode> {
-    let result = sqlx::query("DELETE FROM posts WHERE id = ?")
+pub async fn delete_post(State(state): State<AppState>, Path(id): Path<i32>) -> Result<StatusCode, StatusCode> {
+    let result = sqlx::query("DELETE FROM posts WHERE id = $1")
         .bind(id)
         .execute(&state.pool)
         .await
