@@ -1,27 +1,14 @@
-# render.yaml
 services:
-  # PostgreSQL Database
-  - type: pserv
-    name: blog-db
-    env: postgres
-    postgres:
-      version: 15
-    disk:
-      name: postgres-data
-      sizeGB: 1
-      mountPath: /var/lib/postgresql/data
-
   # Rust Backend
   - type: web
     name: blog-backend
-    env: docker
+    runtime: docker
     repo: https://github.com/weirdo-lyx/my_blog.git
     dockerfilePath: ./backend/Dockerfile
     healthCheckPath: /
     envVars:
       - key: DATABASE_URL
-        fromService:
-          type: pserv
+        fromDatabase:
           name: blog-db
           property: connectionString
       - key: PORT
@@ -49,3 +36,7 @@ services:
           type: web
           name: blog-backend
           property: url
+
+databases:
+  - name: blog-db
+    plan: free
